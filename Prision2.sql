@@ -242,3 +242,148 @@ INSERT INTO Funcionario (nome, cargo, h_inicio, h_fim, contato, prisao_id) VALUE
 ('Larissa Almeida', 'Nutricionista', '07:00:00', '16:00:00', 'larissa.almeida@example.com', '1'),
 ('Tiago Santos', 'Instrutor de Oficinas', '08:00:00', '17:00:00', 'tiago.santos@example.com', '2'),
 ('Camila Pereira', 'Coordenadora', '07:00:00', '16:00:00', 'camila.pereira@example.com', '3');
+
+// Views
+USE SistemaCarcerario;
+
+CREATE VIEW Prisioneiros_Crimes AS
+SELECT 
+    Presos.preso_id,
+    Presos.nome AS Nome_Preso,
+    Crimes.tipo AS Tipo_Crime,
+    Crimes.gravidade AS Gravidade_Crime,
+    Crimes.descricao AS Descricao_Crime
+FROM 
+    Presos
+JOIN 
+    Crimes ON Presos.preso_id = Crimes.preso_id;
+ 
+SELECT * FROM Prisioneiros_Crimes;
+
+CREATE VIEW Prisioneiros_Sentencas AS
+SELECT 
+    Presos.preso_id,
+    Presos.nome AS Nome_Preso,
+    Sentencas.duracao AS Duracao_Sentenca,
+    Sentencas.descricao AS Descricao_Sentenca
+FROM 
+    Presos
+JOIN 
+    Crimes ON Presos.preso_id = Crimes.preso_id
+JOIN 
+    Sentencas ON Crimes.crime_id = Sentencas.crime_id;
+
+SELECT * FROM Prisioneiros_Sentencas;
+
+CREATE VIEW Ocupacao_Celas AS
+SELECT 
+    Celas.cela_id,
+    Celas.setor,
+    Celas.lotacao,
+    Celas.N_presos,
+    Prisoes.endereco AS Endereco_Prisao
+FROM 
+    Celas
+JOIN 
+    Prisoes ON Celas.prisao_id = Prisoes.prisao_id;
+
+SELECT * FROM Ocupacao_Celas;
+
+CREATE VIEW Prisioneiros_Programas AS
+SELECT 
+    Presos.preso_id,
+    Presos.nome AS Nome_Preso,
+    Programa.nome AS Nome_Programa,
+    Participacao.dt_inicio,
+    Participacao.dt_fim,
+    Participacao.descricao AS Descricao_Participacao
+FROM 
+    Presos
+JOIN 
+    Participacao ON Presos.preso_id = Participacao.preso_id
+JOIN 
+    Programa ON Participacao.programa_id = Programa.programa_id;
+
+SELECT * FROM Prisioneiros_Programas;
+
+CREATE VIEW Prisioneiros_Saude AS
+SELECT 
+    Presos.preso_id,
+    Presos.nome AS Nome_Preso,
+    Saude.complicacao,
+    Saude.condicao,
+    Saude.dt_diagnostico,
+    Saude.tratamento
+FROM 
+    Presos
+JOIN 
+    Saude ON Presos.preso_id = Saude.preso_id;    
+
+SELECT * FROM Prisioneiros_Saude;
+
+CREATE VIEW Funcionarios_Prisao AS
+SELECT 
+    Funcionario.funcionario_id,
+    Funcionario.nome AS Nome_Funcionario,
+    Funcionario.cargo,
+    Funcionario.h_inicio,
+    Funcionario.h_fim,
+    Prisoes.endereco AS Endereco_Prisao
+FROM 
+    Funcionario
+JOIN 
+    Prisoes ON Funcionario.prisao_id = Prisoes.prisao_id;
+    
+
+SELECT * FROM Funcionarios_Prisao;
+
+CREATE VIEW Prisioneiros_Sentencas_Longas AS
+SELECT 
+    Presos.preso_id,
+    Presos.nome AS Nome_Preso,
+    Sentencas.duracao,
+    Sentencas.descricao
+FROM 
+    Presos
+JOIN 
+    Crimes ON Presos.preso_id = Crimes.preso_id
+JOIN 
+    Sentencas ON Crimes.crime_id = Sentencas.crime_id
+WHERE 
+    CAST(SUBSTRING_INDEX(Sentencas.duracao, ' ', 1) AS UNSIGNED) >= 10; 
+
+SELECT * FROM Prisioneiros_Sentencas_Longas;
+
+CREATE VIEW Programas_Atuais AS
+SELECT 
+    Programa.programa_id,
+    Programa.nome AS Nome_Programa,
+    Programa.tipo,
+    Programa.descricao,
+    Participacao.dt_inicio,
+    Participacao.dt_fim
+FROM 
+    Programa
+JOIN 
+    Participacao ON Programa.programa_id = Participacao.programa_id
+WHERE 
+    Participacao.dt_fim >= CURDATE();
+
+SELECT * FROM Programas_Atuais;
+
+CREATE VIEW Prisioneiros_Complicacoes_Saude AS
+SELECT 
+    Presos.preso_id,
+    Presos.nome AS Nome_Preso,
+    Saude.complicacao,
+    Saude.condicao,
+    Saude.tratamento
+FROM 
+    Presos
+JOIN 
+    Saude ON Presos.preso_id = Saude.preso_id
+WHERE 
+    Saude.complicacao != 'Nenhuma';
+
+SELECT * FROM Prisioneiros_Complicacoes_Saude;
+
