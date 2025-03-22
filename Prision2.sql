@@ -387,3 +387,164 @@ WHERE
 
 SELECT * FROM Prisioneiros_Complicacoes_Saude;
 
+// Stored Procedures
+USE SistemaCarcerario;
+
+DELIMITER //
+CREATE PROCEDURE InserirPreso(
+    IN nome VARCHAR(100),
+    IN data_nascimento DATE,
+    IN cpf VARCHAR(11),
+    IN sexo CHAR(1),
+    IN endereco VARCHAR(255),
+    IN data_entrada DATE,
+    IN data_prevista_saida DATE,
+    IN cela_id INT
+)
+BEGIN
+    INSERT INTO Presos (nome, data_nascimento, cpf, sexo, endereco, data_entrada, data_prevista_saida, cela_id)
+    VALUES (nome, data_nascimento, cpf, sexo, endereco, data_entrada, data_prevista_saida, cela_id);
+END //
+DELIMITER ;
+
+SELECT * FROM Presos;
+CALL InserirPreso('Jacinto Leite', '1990-01-01', '12345678900', 'M', 'Rua Birinba, 123', '2024-01-01', '2027-01-01', 1);
+CALL InserirPreso('inocentiudo da silva', '1780-04-01', '02345078900', 'M', 'Rua Dterra, 9872', '2000-01-01', '2027-01-01', 2);
+
+DELIMITER //
+CREATE PROCEDURE AtualizarPreso(
+    IN pid INT,
+    IN novo_nome VARCHAR(100),
+    IN novo_endereco VARCHAR(255)
+)
+BEGIN
+    UPDATE Presos
+    SET nome = novo_nome, endereco = novo_endereco
+    WHERE preso_id = pid;           # aqui poderia ser desativado o safe mode da tabela, pra fazer o update, mas desse jeito fica mais bonito(usando pid no lugar de preso_id)
+END //
+DELIMITER ;
+
+SELECT * FROM Presos;
+CALL AtualizarPreso(1, 'Jalan bipal', 'Rua Cemsaida, 456');
+
+DELIMITER //
+CREATE PROCEDURE DeletarPreso(
+    IN pid INT
+)
+BEGIN
+    DELETE FROM Presos WHERE preso_id = pid;
+END //
+DELIMITER ;
+
+SELECT * FROM Presos;
+CALL DeletarPreso(20);
+
+DELIMITER //
+CREATE PROCEDURE InserirPrograma(
+    IN nome VARCHAR(50),
+    IN tipo VARCHAR(50),
+    IN descricao VARCHAR(255)
+)
+BEGIN
+    INSERT INTO Programa (nome, tipo, descricao) 
+    VALUES (nome, tipo, descricao);
+END //
+DELIMITER ;
+
+SELECT * FROM Programa;
+CALL InserirPrograma('Como ser um otimo professor', 'Reabilitação', 'Basta ser igual o Reni Pinto');
+
+DELIMITER //
+CREATE PROCEDURE AtualizarPrograma(
+    IN prog INT,
+    IN novo_nome VARCHAR(50),
+    IN nova_descricao VARCHAR(255)
+)
+BEGIN
+    UPDATE Programa
+    SET nome = novo_nome, descricao = nova_descricao
+    WHERE programa_id = prog;
+END //
+DELIMITER ;
+
+CALL AtualizarPrograma(1, 'Roubo', 'Como roubar com excelencia');
+SELECT * FROM Programa;
+DROP PROCEDURE AtualizarPrograma;
+
+DELIMITER //
+CREATE PROCEDURE InserirPrisao(
+    IN endereco VARCHAR(50),
+    IN N_celas INT,
+    IN descricao VARCHAR(255)
+)
+BEGIN
+    INSERT INTO Prisoes (endereco, N_celas, descricao) VALUES (endereco, N_celas, descricao);
+END //
+DELIMITER ;
+
+CALL InserirPrisao('Rua Novembro, 456', 100, 'Prisão de quem ama demais.');
+SELECT * FROM Prisoes;
+
+DELIMITER //
+CREATE PROCEDURE InserirFuncionario(
+    IN nome VARCHAR(50),
+    IN cargo VARCHAR(50),
+    IN h_inicio TIME,
+    IN h_fim TIME,
+    IN contato VARCHAR(50),
+    IN prisao_id INT
+)
+BEGIN
+    INSERT INTO Funcionario (nome, cargo, h_inicio, h_fim, contato, prisao_id)
+    VALUES (nome, cargo, h_inicio, h_fim, contato, prisao_id);
+END //
+DELIMITER ;
+
+CALL InserirFuncionario('Tokuku Navara', 'Limpador', '09:00:00', '18:00:00', 'NAVARA@gmail.com', 1);
+SELECT *FROM Funcionario;
+
+DELIMITER //
+CREATE PROCEDURE AtualizarFuncionario(
+    IN fun INT,
+    IN novo_cargo VARCHAR(50),
+    IN novo_contato VARCHAR(50)
+)
+BEGIN
+    UPDATE Funcionario
+    SET cargo = novo_cargo, contato = novo_contato
+    WHERE funcionario_id = fun;
+END //
+DELIMITER ;
+
+CALL AtualizarFuncionario(1, 'Dançarino :)', 'Dançabebe@uiui.com');
+SELECT *FROM Funcionario;
+
+DELIMITER //
+CREATE PROCEDURE DeletarFuncionario(
+    IN fun INT
+)
+BEGIN
+    DELETE FROM Funcionario WHERE funcionario_id = fun;
+END //
+DELIMITER ;
+
+CALL DeletarFuncionario(1); #demitido por ficar dançando em serviço
+SELECT *FROM Funcionario;
+
+DELIMITER //
+CREATE PROCEDURE InserirCela(
+    IN setor VARCHAR(50),
+    IN lotacao INT,
+    IN N_presos INT,
+    IN descricao VARCHAR(255),
+    IN prisao_id INT
+)
+BEGIN
+    INSERT INTO Celas (setor, lotacao, N_presos, descricao, prisao_id)
+    VALUES (setor, lotacao, N_presos, descricao, prisao_id);
+END //
+DELIMITER ;
+
+CALL InserirCela('Setor X-men', 20, 15, 'Jaula do leao.', 1);
+SELECT *FROM Celas;
+
