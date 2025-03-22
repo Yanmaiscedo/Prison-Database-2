@@ -598,3 +598,130 @@ DELIMITER ;
 
 SELECT * FROM Presos;
 CALL InserirPreso('inocentiudo da silva', '1780-04-01', '02345078900', 'M', 'Rua Dterra, 9872', '2000-01-01', '1999-01-01', 2);
+
+
+
+// Functions
+USE SistemaCarcerario;
+
+DELIMITER //
+CREATE FUNCTION CalcularIdade(data_nascimento DATE)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE idade INT;
+    SET idade = TIMESTAMPDIFF(YEAR, data_nascimento, CURDATE());
+    RETURN idade;
+END //
+DELIMITER ;
+
+SELECT nome, CalcularIdade(data_nascimento) AS Idade
+FROM Presos;
+
+DELIMITER //
+CREATE FUNCTION Calcularsenteca(data_entrada DATE)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE Anospendentes INT;
+    SET Anospendentes = TIMESTAMPDIFF(YEAR, data_entrada, CURDATE());
+    RETURN Anospendentes;
+END //
+DELIMITER ;
+
+SELECT nome, Calcularsenteca(data_entrada) AS Anospendentes
+FROM Presos;
+
+DELIMITER //
+CREATE FUNCTION CelaEstaCheia(cela_id INT)
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE total_presos INT;
+    DECLARE capacidade INT;
+    DECLARE esta_cheia BOOLEAN;
+
+    -- Seleciona o número de presos e a capacidade da cela
+    SELECT N_presos INTO total_presos FROM Celas WHERE cela_id = cela_id LIMIT 1;
+    SELECT lotacao INTO capacidade FROM Celas WHERE cela_id = cela_id LIMIT 1;
+
+    IF total_presos >= capacidade THEN
+        SET esta_cheia = TRUE;
+    ELSE
+        SET esta_cheia = FALSE;
+    END IF;
+
+    RETURN esta_cheia;
+END //
+DELIMITER ;
+
+SELECT cela_id, CelaEstaCheia(cela_id) AS EstaCheia
+FROM Celas;
+
+DELIMITER //
+CREATE FUNCTION CalcularLotacao(cela_id INT)
+RETURNS DECIMAL(5,2)
+DETERMINISTIC
+BEGIN
+    DECLARE total_presos INT;
+    DECLARE capacidade INT;
+    DECLARE lotacao DECIMAL(5,2);
+
+    SELECT N_presos INTO total_presos FROM Celas WHERE cela_id = cela_id LIMIT 1;
+    SELECT lotacao INTO capacidade FROM Celas WHERE cela_id = cela_id LIMIT 1;
+
+    IF capacidade > 0 THEN
+        SET lotacao = (total_presos / capacidade) * 100;
+    ELSE
+        SET lotacao = 0;
+    END IF;
+    RETURN lotacao;
+END //
+DELIMITER ;
+
+SELECT cela_id, CalcularLotacao(cela_id) AS Lotaçao
+FROM Celas;
+SELECT CalcularLotacao(1) AS LotacaoCelaA;
+DROP FUNCTION CalcularLotacao;
+
+DELIMITER //
+CREATE FUNCTION EstaEmSaudeCritica(preso_id INT)
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE condicao VARCHAR(255);
+    DECLARE em_critica BOOLEAN;
+
+    SELECT condicao INTO condicao FROM Saude WHERE preso_id = preso_id ORDER BY data_registro DESC LIMIT 1;
+
+    IF condicao IN ('Grave', 'Crítica', 'Emergência') THEN
+        SET em_critica = TRUE;
+    ELSE
+        SET em_critica = FALSE;
+    END IF;
+
+    RETURN em_critica;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE FUNCTION CelaEstaCheia(cela_id INT)
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+    DECLARE total_presos INT;
+    DECLARE capacidade INT;
+    DECLARE esta_cheia BOOLEAN;
+
+    SELECT numero_presos INTO total_presos FROM Celas WHERE cela_id = cela_id;
+    SELECT capacidade INTO capacidade FROM Celas WHERE cela_id = cela_id;
+
+    IF total_presos >= capacidade THEN
+        SET esta_cheia = TRUE;
+    ELSE
+        SET esta_cheia = FALSE;
+    END IF;
+
+    RETURN esta_cheia;
+END //
+DELIMITER ;
