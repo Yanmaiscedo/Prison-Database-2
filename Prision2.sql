@@ -548,3 +548,53 @@ DELIMITER ;
 CALL InserirCela('Setor X-men', 20, 15, 'Jaula do leao.', 1);
 SELECT *FROM Celas;
 
+
+// Triggers
+USE SistemaCarcerario;
+
+DELIMITER //
+CREATE TRIGGER AtualizaNumeroDePresosAoInserir
+AFTER INSERT ON Presos
+FOR EACH ROW
+BEGIN
+    UPDATE Celas
+    SET N_presos = N_presos + 1
+    WHERE cela_id = NEW.cela_id;
+END //
+DELIMITER ;
+
+SELECT * FROM Presos;
+CALL InserirPreso('inocentiudo da silva', '1780-04-01', '02345078900', 'M', 'Rua Dterra, 9872', '2000-01-01', '2027-01-01', 2);
+CALL InserirPreso('Culpadiussom da silva', '1780-04-01', '52345071900', 'M', 'Rua Dbarro, 9872', '2000-01-01', '2027-01-01', 2);
+SELECT N_presos FROM Celas WHERE cela_id = 2;
+
+DELIMITER //
+CREATE TRIGGER AtualizaNumeroDePresosAoDeletar
+AFTER DELETE ON Presos
+FOR EACH ROW
+BEGIN
+    UPDATE Celas
+    SET N_presos = N_presos - 1
+    WHERE cela_id = OLD.cela_id;
+END //
+DELIMITER ;
+
+SELECT * FROM Presos;
+CALL DeletarPreso(20);
+CALL DeletarPreso(21);
+SELECT N_presos FROM Celas WHERE cela_id = 2;
+
+DELIMITER //
+CREATE TRIGGER VerificaDatasPreso
+BEFORE INSERT ON Presos
+FOR EACH ROW
+BEGIN
+    IF NEW.data_prevista_saida < NEW.data_entrada THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'A data de saída prevista não pode ser anterior à data de entrada.';
+    END IF;
+END //
+DELIMITER ;
+
+SELECT * FROM Presos;
+CALL InserirPreso('inocentiudo da silva', '1780-04-01', '02345078900', 'M', 'Rua Dterra, 9872', '2000-01-01', '1999-01-01', 2);
